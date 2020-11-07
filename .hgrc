@@ -1,0 +1,18 @@
+[ui]
+editor = vim
+
+[extensions]
+hgext.extdiff =
+
+[alias]
+qlog = log --graph --stat
+
+[extdiff]
+cmd.gvimdiff = gvim
+opts.gvimdiff = --noplugin -fdoR
+cmd.kdiff3 = kdiff3
+cmd.vimdiff = vim
+opts.vimdiff = --noplugin -doR
+
+[tortoisehg]
+maxdiff = 16384
