@@ -245,6 +245,7 @@ endif
 			let g:highlight_group = 0
 		endif
 	endfunction
+	nmap <A-b> :keeppatterns s/\v「\|」\|\(\|\)/\={'「':'(','」':')','(':'「',')':'」'}[submatch(0)]/g<CR>
 	nmap <A-g> :call <SID>Highlight_Group_Select()<CR>
 
 " Mercurial
