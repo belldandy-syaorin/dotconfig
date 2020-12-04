@@ -216,6 +216,8 @@ endif
 				echo 'Highlight Group = Enable (0+2)'
 			elseif g:highlight_group == 3
 				echo 'Highlight Group = Enable (0+3)'
+			elseif g:highlight_group == 4
+				echo 'Highlight Group = Enable (0+4)'
 			endif
 		else
 			echo 'Highlight Group = n/a'
@@ -240,6 +242,10 @@ endif
 			let s:highlight_group_select = 4
 			let g:highlight_group = 3
 		elseif s:highlight_group_select == 4
+			call <SID>Highlight_Group(1)
+			let s:highlight_group_select = 5
+			let g:highlight_group = 4
+		elseif s:highlight_group_select == 5
 			call <SID>Highlight_Group(1)
 			let s:highlight_group_select = 0
 			let g:highlight_group = 0
