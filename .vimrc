@@ -82,26 +82,40 @@ if has('gui_running')
 	set guioptions-=e
 	set guioptions-=m
 	set guioptions-=T
-	set statusline=[%4*%t%*@%4*%{bufnr('%')}%*]
+	set statusline=[%4*%t%*:%4*%P%*@%4*%{bufnr('%')}%*]
 	set statusline+=[%5*%{&fileencoding}%*(%5*%{&bomb}%*)%5*%{&fileformat}%*]
 	set statusline+=[%6*%M%R%Y%*]
 	set statusline+=%=
-	set statusline+=[%1*%{mode()}%*]
+	if (&loadplugins == 1) && s:use_pathogen == 1 && s:use_root == 0
+		" syntastic
+			set statusline+=%1*%{SyntasticStatuslineFlag()}%*
+		" vim-signify
+			set statusline+=%1*%{sy#repo#get_stats_decorated()}%*
+	endif
 	set statusline+=[%1*%{len(filter(range(1,bufnr('$')),'buflisted(v:val)'))}%*]
 	set statusline+=[%1*%{get(undotree(),'seq_cur')}%*/%1*%{get(undotree(),'seq_last')}%*]
+	set statusline+=[%1*%B%*]
+	set statusline+=[%2*%{mode()}%*]
 	set statusline+=[%2*%{&encoding}%*]
-	set statusline+=[%2*%B%*]
+	set statusline+=[%2*%{&wrap}%*]
 	set statusline+=[%3*%l%*,%3*%c%*@%3*%L%*]
 else
-	set statusline=[%t@%{bufnr('%')}]
+	set statusline=[%t:%P@%{bufnr('%')}]
 	set statusline+=[%{&fileencoding}(%{&bomb})%{&fileformat}]
 	set statusline+=[%M%R%Y]
 	set statusline+=%=
-	set statusline+=[%{mode()}]
+	if (&loadplugins == 1) && s:use_pathogen == 1 && s:use_root == 0
+		" syntastic
+			set statusline+=%{SyntasticStatuslineFlag()}
+		" vim-signify
+			set statusline+=%{sy#repo#get_stats_decorated()}
+	endif
 	set statusline+=[%{len(filter(range(1,bufnr('$')),'buflisted(v:val)'))}]
 	set statusline+=[%{get(undotree(),'seq_cur')}/%{get(undotree(),'seq_last')}]
-	set statusline+=[%{&encoding}]
 	set statusline+=[%B]
+	set statusline+=[%{mode()}]
+	set statusline+=[%{&encoding}]
+	set statusline+=[%{&wrap}]
 	set statusline+=[%l,%c@%L]
 endif
 
@@ -122,17 +136,14 @@ if has('gui_running') && has('unix')
 	let s:cjk_font_select = 1
 	function! s:CJK_Font_Select()
 		if s:cjk_font_select == 0
-			call <SID>CJK_Font(0)
+			call <SID>CJK_Font(s:cjk_font_select)
 			let s:cjk_font_select = 1
-		elseif s:cjk_font_select == 1
-			call <SID>CJK_Font(1)
-			let s:cjk_font_select = 2
-		elseif s:cjk_font_select == 2
-			call <SID>CJK_Font(2)
-			let s:cjk_font_select = 3
-		elseif s:cjk_font_select == 3
-			call <SID>CJK_Font(3)
-			let s:cjk_font_select = 0
+		elseif s:cjk_font_select < 4
+			call <SID>CJK_Font(s:cjk_font_select)
+			let s:cjk_font_select = s:cjk_font_select + 1
+			if s:cjk_font_select == 4
+				let s:cjk_font_select = 0
+			end
 		endif
 	endfunction
 	nmap <A-f> :call <SID>CJK_Font_Select()<CR>:echo 'guifontwide ='&guifontwide<CR>
@@ -196,6 +207,7 @@ if has('gui_running')
 endif
 
 " Highlight_Group
+if has('gui_running')
 	function! s:Highlight_Group(mode)
 		if has('unix')
 			let s:highlight_group_path = expand('%:h') . "/highlight.vim"
@@ -208,51 +220,46 @@ endif
 		elseif a:mode == 1 && filereadable(s:highlight_group_path)
 			syntax clear
 			execute 'source ' s:highlight_group_path
-			if g:highlight_group == 0
-				echo 'Highlight Group = Enable (0)'
-			elseif g:highlight_group == 1
-				echo 'Highlight Group = Enable (0+1)'
-			elseif g:highlight_group == 2
-				echo 'Highlight Group = Enable (0+2)'
-			elseif g:highlight_group == 3
-				echo 'Highlight Group = Enable (0+3)'
-			elseif g:highlight_group == 4
-				echo 'Highlight Group = Enable (0+4)'
+			if g:highlight_group =~ '[0-4]'
+				echo 'Highlight Group = Enable' '(' g:highlight_group ')'
 			endif
 		else
 			echo 'Highlight Group = n/a'
 		endif
 	endfunction
-	let s:highlight_group_select = 1
 	let g:highlight_group = 0
-	function! s:Highlight_Group_Select()
-		if s:highlight_group_select == 0
-			call <SID>Highlight_Group(0)
-			let s:highlight_group_select = 1
-		elseif s:highlight_group_select == 1
-			call <SID>Highlight_Group(1)
-			let s:highlight_group_select = 2
-			let g:highlight_group = 1
-		elseif s:highlight_group_select == 2
-			call <SID>Highlight_Group(1)
-			let s:highlight_group_select = 3
-			let g:highlight_group = 2
-		elseif s:highlight_group_select == 3
-			call <SID>Highlight_Group(1)
-			let s:highlight_group_select = 4
-			let g:highlight_group = 3
-		elseif s:highlight_group_select == 4
-			call <SID>Highlight_Group(1)
-			let s:highlight_group_select = 5
-			let g:highlight_group = 4
-		elseif s:highlight_group_select == 5
-			call <SID>Highlight_Group(1)
-			let s:highlight_group_select = 0
-			let g:highlight_group = 0
+	function! s:Highlight_Group_Select(mode)
+		if a:mode == 0
+			if g:highlight_group == 0
+				call <SID>Highlight_Group(1)
+				let g:highlight_group = 1
+			elseif g:highlight_group < 5
+				call <SID>Highlight_Group(1)
+				let g:highlight_group = g:highlight_group + 1
+			elseif g:highlight_group == 5
+				let g:highlight_group = 0
+				call <SID>Highlight_Group(0)
+			endif
+		elseif a:mode == 1
+			if g:highlight_group == 0
+				let g:highlight_group = 4
+				call <SID>Highlight_Group(1)
+			elseif g:highlight_group < 5
+				let g:highlight_group = g:highlight_group - 1
+				call <SID>Highlight_Group(1)
+				if g:highlight_group == 0
+					let g:highlight_group = 5
+				end
+			elseif g:highlight_group == 5
+				let g:highlight_group = 0
+				call <SID>Highlight_Group(0)
+			endif
 		endif
 	endfunction
 	nmap <A-b> :keeppatterns s/\v「\|」\|\(\|\)/\={'「':'(','」':')','(':'「',')':'」'}[submatch(0)]/g<CR>
-	nmap <A-g> :call <SID>Highlight_Group_Select()<CR>
+	nmap <expr> <A-g> &wrap ? ":call <SID>Highlight_Group_Select(0)<CR>"
+		\ : ":call <SID>Highlight_Group_Select(1)<CR>"
+endif
 
 " Mercurial
 if has('gui_running') && has('unix')
@@ -279,40 +286,35 @@ endif
 
 " linux
 if has('gui_running') && has('unix')
-	nmap <expr> <A-p> &diff ? ":%!perl -e 'print reverse <>'<CR>:echo 'sort reverse (perl)'<CR>"
-		\ : ":%!perl -e 'print sort <>'<CR>:echo 'sort (perl)'<CR>"
-	nmap <expr> <A-P> &diff ? ":%!python -c 'import sys ; sys.stdout.writelines(sorted(sys.stdin.readlines(), reverse=True))'<CR>:echo 'sort reverse (python)'<CR>"
+	nmap <expr> <A-p> &wrap ? ":%!perl -e 'print sort <>'<CR>:echo 'sort (perl)'<CR>"
 		\ : ":%!python -c 'import sys ; sys.stdout.writelines(sorted(sys.stdin.readlines()))'<CR>:echo 'sort (python)'<CR>"
-	nmap <expr> <A-S> &diff ? ":%!sort -k 2 -r<CR>:echo 'sort reverse (sort -k 2 -r)'<CR>"
-		\ : ":%!sort -k 2<CR>:echo 'sort (sort -k 2)'<CR>"
+	nmap <expr> <A-r> &wrap ? ":%!perl -e 'print reverse <>'<CR>:echo 'sort reverse (perl)'<CR>"
+		\ : ":%!python -c 'import sys ; sys.stdout.writelines(sorted(sys.stdin.readlines(), reverse=True))'<CR>:echo 'sort reverse (python)'<CR>"
+	nmap <A-P> :%!sort -k 2<CR>:echo 'sort (sort -k 2)'<CR>
+	nmap <A-R> :%!sort -k 2 -r<CR>:echo 'sort reverse (sort -k 2 -r)'<CR>
 endif
 
 " loadplugins
 if (&loadplugins == 1) && s:use_pathogen == 1 && s:use_root == 0
-	" ctrlp.vim
-		let g:ctrlp_types = ['buf', 'mru', 'fil']
-	" syntastic
-		let g:syntastic_always_populate_loc_list = 1
-		let g:syntastic_auto_loc_list = 1
-		let g:syntastic_check_on_wq = 0
 	" vim-signify
 		let g:signify_disable_by_default = 1
 		let g:signify_line_highlight = 1
 	if has('gui_running')
 		" syntastic
-			set statusline+=%1*%{SyntasticStatuslineFlag()}%*
 			nmap <A-c> :SyntasticCheck<CR>
-			nmap <A-r> :SyntasticReset<CR>
+			nmap <A-C> :SyntasticReset<CR>
 		" vim-signify
-			set statusline+=%1*%{sy#repo#get_stats_decorated()}%*
+			function! s:Signify_Line_Highlight_Select()
+				if g:signify_line_highlight == 1
+					let g:signify_line_highlight = 0
+				elseif g:signify_line_highlight == 0
+					let g:signify_line_highlight = 1
+				endif
+			endfunction
 			nmap <expr> <A-j> &diff ? "]c" : "<Plug>(signify-next-hunk)"
 			nmap <expr> <A-k> &diff ? "[c" : "<Plug>(signify-prev-hunk)"
 			nmap <expr> <A-s> &diff ? ":diffoff<CR>" : ":SignifyToggle<CR>"
-	else
-		" syntastic
-			set statusline+=%{SyntasticStatuslineFlag()}
-		" vim-signify
-			set statusline+=%{sy#repo#get_stats_decorated()}
+			nmap <A-S> :call <SID>Signify_Line_Highlight_Select()<CR>:echo 'g:signify_line_highlight =' g:signify_line_highlight<CR>
 	endif
 else
 	if has('gui_running')
