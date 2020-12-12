@@ -296,25 +296,28 @@ endif
 
 " loadplugins
 if (&loadplugins == 1) && s:use_pathogen == 1 && s:use_root == 0
+	" syntastic
+		let g:syntastic_always_populate_loc_list = 1
+		let g:syntastic_auto_loc_list = 1
 	" vim-signify
 		let g:signify_disable_by_default = 1
-		let g:signify_line_highlight = 1
+		let g:signify_line_highlight = 0
 	if has('gui_running')
 		" syntastic
 			nmap <A-c> :SyntasticCheck<CR>
 			nmap <A-C> :SyntasticReset<CR>
 		" vim-signify
-			function! s:Signify_Line_Highlight_Select()
-				if g:signify_line_highlight == 1
-					let g:signify_line_highlight = 0
-				elseif g:signify_line_highlight == 0
+			function! s:Signify_Line_Highlight_Toggle()
+				if g:signify_line_highlight == 0
 					let g:signify_line_highlight = 1
+				elseif g:signify_line_highlight == 1
+					let g:signify_line_highlight = 0
 				endif
 			endfunction
 			nmap <expr> <A-j> &diff ? "]c" : "<Plug>(signify-next-hunk)"
 			nmap <expr> <A-k> &diff ? "[c" : "<Plug>(signify-prev-hunk)"
 			nmap <expr> <A-s> &diff ? ":diffoff<CR>" : ":SignifyToggle<CR>"
-			nmap <A-S> :call <SID>Signify_Line_Highlight_Select()<CR>:echo 'g:signify_line_highlight =' g:signify_line_highlight<CR>
+			nmap <A-S> :call <SID>Signify_Line_Highlight_Toggle()<CR>:echo 'g:signify_line_highlight =' g:signify_line_highlight<CR>
 	endif
 else
 	if has('gui_running')
