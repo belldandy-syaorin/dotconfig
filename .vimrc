@@ -60,7 +60,7 @@ elseif has('win64')
 		autocmd InsertEnter * set noimdisable
 		autocmd InsertLeave * set imdisable
 		set guifont=Source_Code_Pro_Light:h13.5
-		set guifontwide=MingLiU:h17
+		set guifontwide=Sarasa_Mono_TC_Light:h17
 	endif
 endif
 if has('gui_running')
