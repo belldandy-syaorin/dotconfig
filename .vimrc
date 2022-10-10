@@ -312,8 +312,8 @@ if has('gui_running') && has('unix')
 		\ : ":%!python -c 'import sys ; sys.stdout.writelines(sorted(sys.stdin.readlines()))'<CR>:echo 'sort (python)'<CR>"
 	nmap <expr> <A-r> &wrap ? ":%!perl -e 'print reverse <>'<CR>:echo 'sort reverse (perl)'<CR>"
 		\ : ":%!python -c 'import sys ; sys.stdout.writelines(sorted(sys.stdin.readlines(), reverse=True))'<CR>:echo 'sort reverse (python)'<CR>"
-	nmap <A-P> :%!sort -k 2<CR>:echo 'sort (sort -k 2)'<CR>
-	nmap <A-R> :%!sort -k 2 -r<CR>:echo 'sort reverse (sort -k 2 -r)'<CR>
+	nmap <expr> <A-y> &wrap ? ":%!sort -k 2<CR>:echo 'sort (sort -k 2)'<CR>"
+		\ : ":%!sort -k 2 -r<CR>:echo 'sort reverse (sort -k 2 -r)'<CR>"
 endif
 
 " loadplugins
@@ -327,7 +327,7 @@ if (&loadplugins == 1) && s:use_pathogen == 1 && s:use_root == 0
 	if has('gui_running')
 		" syntastic
 			nmap <A-c> :SyntasticCheck<CR>
-			nmap <A-C> :SyntasticReset<CR>
+			nmap <A-x> :SyntasticReset<CR>
 		" vim-signify
 			function! s:Signify_Line_Highlight_Toggle()
 				if g:signify_line_highlight == 0
