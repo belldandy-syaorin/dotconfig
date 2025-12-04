@@ -197,28 +197,6 @@ endif
 nnoremap <A-h> :call <SID>Diff_Pos(0)<CR>
 nnoremap <A-l> :call <SID>Diff_Pos(1)<CR>
 
-" Fcitx5
-if has('gui_running') && has('unix')
-	let g:input_toggle = 1
-	function! Fcitx2en()
-		let s:input_status = system("fcitx5-remote")
-		if s:input_status == 2
-			let g:input_toggle = 1
-			let l:a = system("fcitx5-remote -c")
-		endif
-	endfunction
-	function! Fcitx2cjk()
-		let s:input_status = system("fcitx5-remote")
-		if s:input_status != 2 && g:input_toggle == 1
-			let l:a = system("fcitx5-remote -o")
-			let g:input_toggle = 0
-		endif
-	endfunction
-	set ttimeoutlen=150
-	autocmd InsertLeave * call Fcitx2en()
-	autocmd InsertEnter * call Fcitx2cjk()
-endif
-
 " Highlight_Group
 if has('gui_running') || has('nvim')
 	function! s:Highlight_Group(mode)
