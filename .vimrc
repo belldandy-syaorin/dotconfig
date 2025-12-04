@@ -1,22 +1,6 @@
 " vi
 set nocompatible
 
-" vim-pathogen
-if filereadable(expand('$VIMRUNTIME/autoload/pathogen.vim'))
-	\ || filereadable(expand('$VIM/vimfiles/autoload/pathogen.vim'))
-	let s:use_pathogen = 1
-else
-	let s:use_pathogen = 0
-endif
-if has('unix') && $USER == 'root'
-	let s:use_root = 1
-else
-	let s:use_root = 0
-endif
-if s:use_pathogen == 1 && s:use_root == 0
-	execute pathogen#infect()
-endif
-
 " vim
 set ambiwidth=double
 set autoindent
@@ -64,14 +48,18 @@ elseif has('win64')
 	endif
 endif
 if has('gui_running')
-	map! <A-h> <Left>
-	map! <A-l> <Right>
-	map! <A-j> <Down>
-	map! <A-k> <Up>
-	nmap <expr> <A-d> &diff ? ":diffoff<CR>" : ":diffthis<CR>"
-	nmap <A-e> <C-w>=
-	nmap <A-m> <C-w>_
-	nmap <A-w> :set wrap!<CR>
+	cnoremap <A-h> <Left>
+	cnoremap <A-l> <Right>
+	cnoremap <A-j> <Down>
+	cnoremap <A-k> <Up>
+	inoremap <A-h> <Left>
+	inoremap <A-l> <Right>
+	inoremap <A-j> <Down>
+	inoremap <A-k> <Up>
+	nnoremap <expr> <A-d> &diff ? ":diffoff<CR>" : ":diffthis<CR>"
+	nnoremap <A-e> <C-w>=
+	nnoremap <A-m> <C-w>_
+	nnoremap <A-w> :set wrap!<CR>
 	highlight Normal guibg=black guifg=white
 	highlight User1 guibg=white guifg=darkred
 	highlight User2 guibg=white guifg=darkgreen
@@ -86,9 +74,7 @@ if has('gui_running')
 	set statusline+=[%5*%{&fileencoding}%*(%5*%{&bomb}%*)%5*%{&fileformat}%*]
 	set statusline+=[%6*%M%R%Y%*]
 	set statusline+=%=
-	if (&loadplugins == 1) && s:use_pathogen == 1 && s:use_root == 0
-		" syntastic
-			set statusline+=%1*%{SyntasticStatuslineFlag()}%*
+	if has('nvim')
 		" vim-signify
 			set statusline+=%1*%{sy#repo#get_stats_decorated()}%*
 	endif
@@ -104,9 +90,7 @@ else
 	set statusline+=[%{&fileencoding}(%{&bomb})%{&fileformat}]
 	set statusline+=[%M%R%Y]
 	set statusline+=%=
-	if (&loadplugins == 1) && s:use_pathogen == 1 && s:use_root == 0
-		" syntastic
-			set statusline+=%{SyntasticStatuslineFlag()}
+	if has('nvim')
 		" vim-signify
 			set statusline+=%{sy#repo#get_stats_decorated()}
 	endif
@@ -117,6 +101,23 @@ else
 	set statusline+=[%{&encoding}]
 	set statusline+=[%{&wrap}]
 	set statusline+=[%l,%c@%L]
+endif
+if has('nvim')
+	nnoremap <expr> <A-d> &diff ? ":diffoff<CR>" : ":diffthis<CR>"
+	nnoremap <A-e> <C-w>=
+	nnoremap <A-m> <C-w>_
+	nnoremap <expr> <A-n> &wrap ? ":enew<CR>:diffthis<CR>:0read !git diff '#'<CR>:setlocal nomodifiable nomodified readonly<CR>"
+		\ : ":enew<CR>:diffthis<CR>:0read !hg diff '#'<CR>:setlocal nomodifiable nomodified readonly<CR>"
+	nnoremap <expr> <A-p> &wrap ? ":%!perl -e 'print sort <>'<CR>:echo 'sort (perl)'<CR>"
+		\ : ":%!python -c 'import sys ; sys.stdout.writelines(sorted(sys.stdin.readlines()))'<CR>:echo 'sort (python)'<CR>"
+	nnoremap <expr> <A-r> &wrap ? ":%!perl -e 'print reverse sort <>'<CR>:echo 'sort reverse (perl)'<CR>"
+		\ : ":%!python -c 'import sys ; sys.stdout.writelines(sorted(sys.stdin.readlines(), reverse=True))'<CR>:echo 'sort reverse (python)'<CR>"
+	nnoremap <expr> <A-s> &wrap ? ":%!sort -k 2<CR>:echo 'sort (sort -k 2)'<CR>"
+		\ : ":%!sort -k 2 -r<CR>:echo 'sort reverse (sort -k 2 -r)'<CR>"
+	nnoremap <A-w> :set wrap!<CR>
+else
+	nnoremap <A-j> ]c
+	nnoremap <A-k> [c
 endif
 
 " CJK_Font
@@ -135,22 +136,14 @@ if has('gui_running') && has('unix')
 	call <SID>CJK_Font(0)
 	let s:cjk_font_select = 1
 	function! s:CJK_Font_Select()
-		if s:cjk_font_select == 0
-			call <SID>CJK_Font(s:cjk_font_select)
-			let s:cjk_font_select = 1
-		elseif s:cjk_font_select < 4
-			call <SID>CJK_Font(s:cjk_font_select)
-			let s:cjk_font_select = s:cjk_font_select + 1
-			if s:cjk_font_select == 4
-				let s:cjk_font_select = 0
-			end
-		endif
+		call <SID>CJK_Font(s:cjk_font_select)
+		let s:cjk_font_select = (s:cjk_font_select + 1) % 4
 	endfunction
-	nmap <A-f> :call <SID>CJK_Font_Select()<CR>:echo 'guifontwide ='&guifontwide<CR>
+	nnoremap <A-f> :call <SID>CJK_Font_Select()<CR>:echo 'guifontwide ='&guifontwide<CR>
 endif
 
 " Diff_Pos
-if (&loadplugins == 1) && s:use_pathogen == 1 && s:use_root == 0
+if has('nvim')
 	function! s:Diff_Pos(mode)
 		while a:mode == 0
 			let s:startpos = line('.')
@@ -201,10 +194,8 @@ else
 		endwhile
 	endfunction
 endif
-if has('gui_running')
-	nmap <A-h> :call <SID>Diff_Pos(0)<CR>
-	nmap <A-l> :call <SID>Diff_Pos(1)<CR>
-endif
+nnoremap <A-h> :call <SID>Diff_Pos(0)<CR>
+nnoremap <A-l> :call <SID>Diff_Pos(1)<CR>
 
 " Fcitx5
 if has('gui_running') && has('unix')
@@ -229,13 +220,9 @@ if has('gui_running') && has('unix')
 endif
 
 " Highlight_Group
-if has('gui_running')
+if has('gui_running') || has('nvim')
 	function! s:Highlight_Group(mode)
-		if has('unix')
-			let s:highlight_group_path = expand('%:h') . "/highlight.vim"
-		elseif has('win64')
-			let s:highlight_group_path = expand('%:h') . "\\highlight.vim"
-		endif
+		let s:highlight_group_path = expand('%:p:h') . "/highlight.vim"
 		if a:mode == 0 && filereadable(s:highlight_group_path)
 			syntax clear
 			echo 'Highlight Group = Disable'
@@ -249,13 +236,14 @@ if has('gui_running')
 			echo 'Highlight Group = n/a'
 		endif
 	endfunction
-	let g:highlight_group = 0
+	let g:highlight_group = 1
 	function! s:Highlight_Group_Select(mode)
 		if a:mode == 0
+			let g:highlight_group_temp = g:highlight_group
 			if g:highlight_group == 0
 				call <SID>Highlight_Group(1)
 				let g:highlight_group = 1
-			elseif g:highlight_group < 5
+			elseif g:highlight_group >= 1 && g:highlight_group <= 4
 				call <SID>Highlight_Group(1)
 				let g:highlight_group = g:highlight_group + 1
 			elseif g:highlight_group == 5
@@ -263,87 +251,14 @@ if has('gui_running')
 				call <SID>Highlight_Group(0)
 			endif
 		elseif a:mode == 1
-			if g:highlight_group == 0
-				let g:highlight_group = 4
-				call <SID>Highlight_Group(1)
-			elseif g:highlight_group < 5
-				let g:highlight_group = g:highlight_group - 1
-				call <SID>Highlight_Group(1)
-				if g:highlight_group == 0
-					let g:highlight_group = 5
-				end
-			elseif g:highlight_group == 5
-				let g:highlight_group = 0
-				call <SID>Highlight_Group(0)
-			endif
+			let g:highlight_group = 0
+			call <SID>Highlight_Group(0)
+			let g:highlight_group = g:highlight_group_temp
 		endif
 	endfunction
-	nmap <A-b> :keeppatterns s/\v「\|」\|\(\|\)/\={'「':'(','」':')','(':'「',')':'」'}[submatch(0)]/g<CR>
-	nmap <expr> <A-g> &wrap ? ":call <SID>Highlight_Group_Select(0)<CR>"
+	nnoremap <A-b> :keeppatterns s/\v「\|」\|\(\|\)/\={'「':'(','」':')','(':'「',')':'」'}[submatch(0)]/g<CR>
+	nnoremap <expr> <A-B> &wrap ? ":keeppatterns s/\"/「/<CR>:keeppatterns s/\\v.*\\zs\"/」/<CR>"
+		\ : ":keeppatterns s/\"/(/<CR>:keeppatterns s/\\v.*\\zs\"/)/<CR>"
+	nnoremap <expr> <A-g> &wrap ? ":call <SID>Highlight_Group_Select(0)<CR>"
 		\ : ":call <SID>Highlight_Group_Select(1)<CR>"
-endif
-
-" Mercurial
-if has('gui_running') && has('unix')
-	function! s:Mercurial(mode)
-		if isdirectory(expand('%:h') . "/.hg")
-			if a:mode == 0
-				:!hg status "%"
-			elseif a:mode == 1
-				:new|resize|diffthis|0read !hg diff "#"
-			elseif a:mode == 2
-				:tabnew|diffthis|0read !hg diff "#"
-			endif
-		else
-			echo 'Repository = n/a'
-		endif
-	endfunction
-	nmap <A-n> :call <SID>Mercurial(1)<CR>
-	nmap <A-t> :call <SID>Mercurial(2)<CR>
-	nmap <A-v> :call <SID>Mercurial(0)<CR>
-	nmap <A-N> :new<CR>:resize<CR>:diffthis<CR>:0read !hg diff "#"<CR>
-	nmap <A-T> :tabnew<CR>:diffthis<CR>:0read !hg diff "#"<CR>
-	nmap <A-V> :!hg status "%"<CR>
-endif
-
-" linux
-if has('gui_running') && has('unix')
-	nmap <expr> <A-p> &wrap ? ":%!perl -e 'print sort <>'<CR>:echo 'sort (perl)'<CR>"
-		\ : ":%!python -c 'import sys ; sys.stdout.writelines(sorted(sys.stdin.readlines()))'<CR>:echo 'sort (python)'<CR>"
-	nmap <expr> <A-r> &wrap ? ":%!perl -e 'print reverse <>'<CR>:echo 'sort reverse (perl)'<CR>"
-		\ : ":%!python -c 'import sys ; sys.stdout.writelines(sorted(sys.stdin.readlines(), reverse=True))'<CR>:echo 'sort reverse (python)'<CR>"
-	nmap <expr> <A-y> &wrap ? ":%!sort -k 2<CR>:echo 'sort (sort -k 2)'<CR>"
-		\ : ":%!sort -k 2 -r<CR>:echo 'sort reverse (sort -k 2 -r)'<CR>"
-endif
-
-" loadplugins
-if (&loadplugins == 1) && s:use_pathogen == 1 && s:use_root == 0
-	" syntastic
-		let g:syntastic_always_populate_loc_list = 1
-		let g:syntastic_auto_loc_list = 1
-	" vim-signify
-		let g:signify_disable_by_default = 1
-		let g:signify_line_highlight = 0
-	if has('gui_running')
-		" syntastic
-			nmap <A-c> :SyntasticCheck<CR>
-			nmap <A-x> :SyntasticReset<CR>
-		" vim-signify
-			function! s:Signify_Line_Highlight_Toggle()
-				if g:signify_line_highlight == 0
-					let g:signify_line_highlight = 1
-				elseif g:signify_line_highlight == 1
-					let g:signify_line_highlight = 0
-				endif
-			endfunction
-			nmap <expr> <A-j> &diff ? "]c" : "<Plug>(signify-next-hunk)"
-			nmap <expr> <A-k> &diff ? "[c" : "<Plug>(signify-prev-hunk)"
-			nmap <expr> <A-s> &diff ? ":diffoff<CR>" : ":SignifyToggle<CR>"
-			nmap <A-S> :call <SID>Signify_Line_Highlight_Toggle()<CR>:echo 'g:signify_line_highlight =' g:signify_line_highlight<CR>
-	endif
-else
-	if has('gui_running')
-		nmap <A-j> ]c
-		nmap <A-k> [c
-	endif
 endif

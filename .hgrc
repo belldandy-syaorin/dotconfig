@@ -11,6 +11,8 @@ qlog = log --graph --stat
 cmd.gvimdiff = gvim
 opts.gvimdiff = --noplugin -fdoR
 cmd.kdiff3 = kdiff3
+cmd.nvimdiff = nvim
+opts.nvimdiff = -doR
 cmd.vimdiff = vim
 opts.vimdiff = --noplugin -doR
 
