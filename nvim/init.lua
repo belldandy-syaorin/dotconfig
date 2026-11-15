@@ -21,7 +21,10 @@ vim.opt.rtp:prepend(lazypath)
 vim.g.mapleader = " "
 vim.g.maplocalleader = "\\"
 -- vim
-vim.cmd([[  source ~/.config/nvim/setting.vim  ]])
+local setting = vim.fn.expand("~/.config/nvim/setting.vim")
+if vim.uv.fs_stat(setting) then
+  vim.cmd("source " .. setting)
+end
 
 -- Setup lazy.nvim
 require("lazy").setup({
@@ -40,6 +43,12 @@ require("lazy").setup({
   -- automatically check for plugin updates
   checker = { enabled = true },
 })
+
+-- aichat
+if vim.fn.executable("aichat") == 1 then
+  vim.keymap.set('n', '<M-%>', '<Cmd>enew | terminal aichat<CR>', opts)
+  vim.keymap.set('n', '<M-_>', '<Cmd>new | terminal aichat<CR>', opts)
+end
 
 -- clipboard
 if vim.env.SSH_CLIENT or vim.env.SSH_CONNECTION or vim.env.SSH_TTY or vim.env.TERMUX_VERSION then
